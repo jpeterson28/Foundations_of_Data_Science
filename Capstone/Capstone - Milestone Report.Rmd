@@ -1,0 +1,57 @@
+---
+title: "Capstone - Milestone Report"
+author: "John Peterson"
+output:
+  pdf_document: default
+---
+
+```{r rawData, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+library(psych)
+library(e1071)
+```
+
+
+## Introduction
+
+The US Census conducted by the US Census Bureau is the leading source for data about the people and economy of the United States. The census collects a wealth of information about the United States. This data can be used to make predictions about income, demographics, education and employment. The goal of this project is to use the census data to develop a prediction model to predict whether a person makes over $50K per year. The data set to be used is the Census Income Data Set from the Machine Learning Repository, University of California Irvine: http://archive.ics.uci.edu/ml/datasets/Census+Income. This data was extracted from the 1994 Census database. A machine learning approach will be used to make the prediction. The machine learning technique to be used will be SVM (Support Vector Machine). SVM is particularly good for classification and regression analysis. The goal is to develop a prediction model that can be used on larger data sets and different Census years data. A report and presentation will be created showing how the solution was obtained. The report and presentation will include the code written to perform the analysis. 
+
+
+## Initial Review of Data Set
+
+The first things about the Census Income data set that stand out are the numbers of instances (48842 lines) and the data does not have any column names. The column names for the 14 attributes had to be called out when loading the data set. Further review of the data set showed 8 columns are categorical variables meaning the values are not numbers. For instance the column Occupation has data Adm-clerical, Armed-forces and Other-service to name a few. The categorical variables were causing an error during some initial analysis. The categorical variables were dummy coded using the Psych package. The dummy code codes the variables with a 1 or 0, and moved each variable to it's own column. The code is shown below:
+
+
+```{r eval=FALSE}
+for(i in 1:length(categoricalIndex)){
+  rawData <- cbind(rawData,dummy.code(rawData[,categoricalIndex[i]]))
+}
+
+rawData <- rawData[, !(colnames(rawData) %in% c(categoricalIndex))]
+```
+
+After the categorical variables were corrected the data could be separated into train and test sets to perform preliminary analysis.
+
+## Preliminary Analysis
+
+The train data was comprised of a random 70% of the data set and a random 30% made up the test data. Using the e1071 package to perform SVM it was observed that creating the model was taking a very long time. Discussing with my mentor it was determined that creating a model for 48000 lines was too much for my desktop to handle. To make it easier for the computer a sample of the larger data set was created; 2000 rows were sampled. Using the smaller sample made the model creation much quicker. Comparing the table of the prediction model against the test data it was showing as being unbalanced. When observing the error table the numbers on the diagonal were too skewed in one direction. The sample data pulled had too many answers for <50K (we are trying to predict if a person makes >50K). To balance the SMOTE package was used. This required some manipulation to determine the correct percentage overage to balance the date. The code is shown below for the data was balanced: 
+
+```{r eval=FALSE}
+#Smote for dealing with unbalanced data, install DMwR package
+install.packages('DMwR')
+library(DMwR)
+# Call table to see difference between factors (<=50K and >50K)
+table(rawData$greater.less.than)
+rawData <- SMOTE(greater.less.than ~ ., rawData, perc.over =300, perc.under = 135) 
+#Update perc.over and perc.under based on sampling of rawData
+```
+
+Balancing the data was a key step in the project to help calculate more reasonable error tables. 
+
+## Conclusion
+
+This data set has needed a fair bit of wrangling to make it usable. These are common things that will be encountered in the real world as no data set is perfect. A fair bit of the wrangling has taken place after trying to create the prediction model. The issues encountered have been unbalanced data, large data sets, categorical variables and setting data to factors. The approach for the project has not changed but has required data wrangling to ensure the model runs correctly. The issues encountered have been great learning points for future work.
+
